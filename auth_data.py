@@ -1,6 +1,7 @@
 from urllib.parse import urlencode
 import re
 
+
 APP_ID = 7521045
 OAUTH_URL = 'https://oauth.vk.com/authorize'
 OAUTH_PARAMS = {

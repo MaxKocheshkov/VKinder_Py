@@ -5,6 +5,8 @@ from tqdm import tqdm
 import sys
 from time import sleep
 import pandas as pd
+import csv
+import json
 
 
 def get_search():
@@ -32,9 +34,9 @@ def get_search():
 def get_common_count():
     ids_list = []
     for value in tqdm(get_search().values(), file=sys.__stdout__):
-        for common_data in value['items']:
-            if common_data['common_count'] is not 0:
-                ids_list.append(common_data['id'])
+        for common_data in value.get('items'):
+            if common_data.get('common_count') is not 0:
+                ids_list.append(common_data.get('id'))
     return ids_list
 
 
@@ -67,32 +69,55 @@ def people_info_data():
                 'first name': people_data.get('first_name'),
                 'last name': people_data.get('last_name'),
                 'birth': people_data.get('bdate'),
-                'city': people_data.get('city')['title'],
                 'gender': people_gender,
+                'city': people_data.get('city')['title'],
             }
             found_people_list.append(people_dict)
+    with open('people_df.csv', "w", newline="", encoding='utf8') as file:
+        columns = ['ids', 'first name', 'last name', 'birth', 'gender', 'city']
+        writer = csv.DictWriter(file, fieldnames=columns)
+        writer.writeheader()
+        writer.writerows(found_people_list)
     return found_people_list
 
 
-# def get_people_photo():
-#     for ids in tqdm(get_common_count(), file=sys.__stdout__):
-#         photo_params = {
-#             'owner_id': ids,
-#             'album_id': 'profile',
-#             'rev': 1,
-#             'extended': 1,
-#         }
-#         params.update(photo_params)
-#         people_photo = Vk(TOKEN, ids).get_request(PHOTO_URL, params)
-#         return people_photo
-# for photo_values in people_photo.values():
-#     photo_elem = photo_values.get('items')
-#     return photo_elem
+def get_people_photo():
+    photo_list = []
+    for people_id in people_info_data():
+        photo_params = {
+            'owner_id': people_id.get('ids'),
+            'album_id': 'profile',
+            'rev': 1,
+            'extended': 1,
+        }
+        params.update(photo_params)
+        people_photo = Vk(TOKEN, people_id.get('ids'))
+        for people_photo_info in people_photo.get_request(PHOTO_URL, params).values():
+            photo_info = people_photo_info.get('items')
+            if photo_info is not None:
+                for photo_data in photo_info:
+                    photo_dict = {
+                        'ids': photo_data.get('owner_id'),
+                        'photo url': photo_data.get('sizes')[-1].get('url'),
+                        'photo likes': photo_data.get('likes').get('count')
+                    }
+                    photo_list.append(photo_dict)
+    with open('photo_df.csv', "w", newline="") as file:
+        columns = ['ids', 'photo url', 'photo likes']
+        writer = csv.DictWriter(file, fieldnames=columns)
+        writer.writeheader()
+        writer.writerows(photo_list)
+    return photo_list
 
 
-def sort_people_df():
-    people_df = pd.DataFrame(people_info_data())
-    p_df = people_df[['ids', 'first name', 'last name', 'birth', 'gender', 'city']]
-    p_df_sort = p_df.head(10)
-    p_df_sort.to_json('sort_people_DF.json', force_ascii=False)
-    return p_df_sort
+def sort_df():
+    get_people_photo()
+    p_df = pd.read_csv('people_df.csv')
+    ph_df = pd.read_csv('photo_df.csv')
+    ph_df = ph_df.sort_values('photo likes').groupby('ids')['ids', 'photo url', 'photo likes'].max()
+    ph_df = ph_df.reset_index(drop=True)
+    union_df = pd.merge(p_df, ph_df, on='ids', how='outer')
+    sort_data_df = union_df.sort_values('photo likes', ascending=False).reset_index(drop=True)
+    n_sort_df = sort_data_df.head(10)
+    return n_sort_df
+
