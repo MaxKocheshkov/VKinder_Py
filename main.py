@@ -11,10 +11,10 @@ def people_db(db):
     return result
 
 
-client = MongoClient()
-date_db = client['VKinder_v_2_2']
-people_base = date_db['Find_people_DB']
-people_db(people_base)
-pprint.pprint(list(people_base.find()))
-
+if __name__ == '__main__':
+    client = MongoClient()
+    date_db = client['VKinder_v_2_3']
+    people_base = date_db['Find_people_DB']
+    people_db(people_base)
+    pprint.pprint(list(people_base.find()))
 

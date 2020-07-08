@@ -1,12 +1,10 @@
-from vk_data import Vk, USER_URL, GROUP_URL, FRIEND_URL, params, TOKEN, user_id
-import pandas as pd
-import csv
+from vk_data import Vk, USER_URL, params, TOKEN, user_id
 
 
 class User(Vk):
 
     def get_user(self):
-        user_param = {'fields': 'bdate, sex, city'}
+        user_param = {'fields': 'bdate, sex, city, screen_name'}
         params.update(user_param)
         user_info = Vk(TOKEN, user_id).get_request(USER_URL, params)
         return user_info
@@ -30,4 +28,3 @@ class User(Vk):
 
 
 user_1 = User(TOKEN, user_id)
-

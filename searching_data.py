@@ -6,7 +6,6 @@ import sys
 from time import sleep
 import pandas as pd
 import csv
-import json
 
 
 def get_search():
@@ -18,7 +17,7 @@ def get_search():
             searching_sex = 1
         search_params = {
             'count': 1000,
-            'fields': 'bdate, city, common_count',
+            'fields': 'bdate, city, common_count, screen_name',
             'sex': searching_sex,
             'city': int(user_data['city']['id']),
             'age_from': int(age_from),
@@ -45,7 +44,7 @@ def ids_info():
     for ids in tqdm(get_common_count(), file=sys.__stdout__):
         ids_params = {
             'user_id': ids,
-            'fields': 'bdate, relation, common_count',
+            'fields': 'bdate, common_count',
         }
         params.update(ids_params)
         people_info = User(TOKEN, ids)
@@ -71,10 +70,11 @@ def people_info_data():
                 'birth': people_data.get('bdate'),
                 'gender': people_gender,
                 'city': people_data.get('city')['title'],
+                'domain': 'https://vk.com/'+str(people_data.get('screen_name')),
             }
             found_people_list.append(people_dict)
     with open('people_df.csv', "w", newline="", encoding='utf8') as file:
-        columns = ['ids', 'first name', 'last name', 'birth', 'gender', 'city']
+        columns = ['ids', 'first name', 'last name', 'birth', 'gender', 'city', 'domain']
         writer = csv.DictWriter(file, fieldnames=columns)
         writer.writeheader()
         writer.writerows(found_people_list)
@@ -95,7 +95,9 @@ def get_people_photo():
         for people_photo_info in people_photo.get_request(PHOTO_URL, params).values():
             photo_info = people_photo_info.get('items')
             if photo_info is not None:
-                for photo_data in photo_info:
+                find_photo_info = sorted(photo_info, key=lambda x: x.get('likes').get('count'), reverse=True)
+                sort_photo_info = find_photo_info[:3]
+                for photo_data in sort_photo_info:
                     photo_dict = {
                         'ids': photo_data.get('owner_id'),
                         'photo url': photo_data.get('sizes')[-1].get('url'),
@@ -114,8 +116,7 @@ def sort_df():
     get_people_photo()
     p_df = pd.read_csv('people_df.csv')
     ph_df = pd.read_csv('photo_df.csv')
-    ph_df = ph_df.sort_values('photo likes').groupby('ids')['ids', 'photo url', 'photo likes'].max()
-    ph_df = ph_df.reset_index(drop=True)
+    ph_df = ph_df.groupby(['ids']).agg(lambda x: x.tolist()).reset_index()
     union_df = pd.merge(p_df, ph_df, on='ids', how='outer')
     sort_data_df = union_df.sort_values('photo likes', ascending=False).reset_index(drop=True)
     n_sort_df = sort_data_df.head(10)

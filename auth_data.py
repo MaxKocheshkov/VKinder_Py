@@ -2,7 +2,7 @@ from urllib.parse import urlencode
 import re
 
 
-APP_ID = 7521045
+APP_ID = 7530136
 OAUTH_URL = 'https://oauth.vk.com/authorize'
 OAUTH_PARAMS = {
     'client_id': APP_ID,
@@ -13,6 +13,7 @@ OAUTH_PARAMS = {
 }
 
 open_url = '?'.join((OAUTH_URL, urlencode(OAUTH_PARAMS)))
+
 print(f'Перейдите по сслыке и скопируйте данные из адресной строки: {open_url}')
 token_url = input('Введите полученную ссылку: ')
 token_regex = re.compile(r'\w{6}\_\w{5}\=(.{85})')
