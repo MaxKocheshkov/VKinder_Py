@@ -6,6 +6,7 @@ import sys
 from time import sleep
 import pandas as pd
 import csv
+from random import randint
 
 
 def get_search():
@@ -24,6 +25,7 @@ def get_search():
             'age_to': int(age_to),
             'status': search_status,
             'has_photo': 1,
+            'offset': randint(0, 1000),
         }
         params.update(search_params)
     search_info = Vk(TOKEN, user_id).get_request(SEARCH_URL, params)
