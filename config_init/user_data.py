@@ -1,4 +1,4 @@
-from vk_data import Vk, USER_URL, params, TOKEN, user_id
+from config_init.vk_data import Vk, USER_URL, params, TOKEN, user_id
 
 
 class User(Vk):

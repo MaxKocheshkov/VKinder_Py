@@ -1,18 +1,18 @@
-from auth_data import TOKEN
-from user_data import user_1, User
-from vk_data import Vk, user_id, SEARCH_URL, params, age_to, age_from, search_status, PHOTO_URL
+from config_init.auth_data import TOKEN
+from config_init.user_data import user_1, User
+from config_init.vk_data import Vk, user_id, SEARCH_URL, params, age_to, age_from, search_status, PHOTO_URL
 from tqdm import tqdm
 import sys
 from time import sleep
 import pandas as pd
 import csv
-from random import randint
+import random
 
 
 def get_search():
     for value in tqdm(user_1.get_user().values(), file=sys.__stdout__):
         user_data = value[0]
-        if user_data['sex'] == 1:
+        if user_data.get('sex') == 1:
             searching_sex = 2
         else:
             searching_sex = 1
@@ -20,12 +20,12 @@ def get_search():
             'count': 1000,
             'fields': 'bdate, city, common_count, screen_name',
             'sex': searching_sex,
-            'city': int(user_data['city']['id']),
+            'city': int(user_data.get('city').get('id')),
             'age_from': int(age_from),
             'age_to': int(age_to),
             'status': search_status,
             'has_photo': 1,
-            'offset': randint(0, 1000),
+            'offset': random.random(),
         }
         params.update(search_params)
     search_info = Vk(TOKEN, user_id).get_request(SEARCH_URL, params)
@@ -75,7 +75,7 @@ def people_info_data():
                 'domain': 'https://vk.com/'+str(people_data.get('screen_name')),
             }
             found_people_list.append(people_dict)
-    with open('people_df.csv', "w", newline="", encoding='utf8') as file:
+    with open('config_init/people_df.csv', "w", newline="", encoding='utf8') as file:
         columns = ['ids', 'first name', 'last name', 'birth', 'gender', 'city', 'domain']
         writer = csv.DictWriter(file, fieldnames=columns)
         writer.writeheader()
@@ -106,7 +106,7 @@ def get_people_photo():
                         'photo likes': photo_data.get('likes').get('count')
                     }
                     photo_list.append(photo_dict)
-    with open('photo_df.csv', "w", newline="") as file:
+    with open('config_init/photo_df.csv', "w", newline="") as file:
         columns = ['ids', 'photo url', 'photo likes']
         writer = csv.DictWriter(file, fieldnames=columns)
         writer.writeheader()
@@ -116,11 +116,10 @@ def get_people_photo():
 
 def sort_df():
     get_people_photo()
-    p_df = pd.read_csv('people_df.csv')
-    ph_df = pd.read_csv('photo_df.csv')
+    p_df = pd.read_csv('config_init/people_df.csv')
+    ph_df = pd.read_csv('config_init/photo_df.csv')
     ph_df = ph_df.groupby(['ids']).agg(lambda x: x.tolist()).reset_index()
     union_df = pd.merge(p_df, ph_df, on='ids', how='outer')
     sort_data_df = union_df.sort_values('photo likes', ascending=False).reset_index(drop=True)
     n_sort_df = sort_data_df.head(10)
     return n_sort_df
-

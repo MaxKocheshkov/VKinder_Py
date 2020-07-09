@@ -1,5 +1,5 @@
 import requests
-from auth_data import TOKEN
+from config_init.auth_data import TOKEN
 
 user_id = input('Введите id пользователя: ')
 age_from = input('Введите диапазон возраста для поиска от: ')
