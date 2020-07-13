@@ -122,4 +122,5 @@ def sort_df():
     union_df = pd.merge(p_df, ph_df, on='ids', how='outer')
     sort_data_df = union_df.sort_values('photo likes', ascending=False).reset_index(drop=True)
     n_sort_df = sort_data_df.head(10)
+    n_sort_df.to_json('people_data.json', force_ascii=False)
     return n_sort_df
