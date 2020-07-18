@@ -1,6 +1,7 @@
 from urllib.parse import urlencode
 import re
 import configparser
+import subprocess
 
 APP_ID = 7530136
 OAUTH_URL = 'https://oauth.vk.com/authorize'
@@ -29,3 +30,5 @@ except configparser.NoSectionError:
         config.write(config_file)
     config.read('token.ini')
     TOKEN = config.get('APP_TOKEN', 'token')
+
+subprocess.call(['attrib', '+h', 'token.ini'])
