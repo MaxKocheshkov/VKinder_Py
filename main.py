@@ -13,9 +13,7 @@ def people_db(db):
 
 if __name__ == '__main__':
     client = MongoClient()
-    date_db = client['VKinder_v_3_0']
+    date_db = client['VKinder_v_3_1']
     people_base = date_db['Find_people_DB']
     people_db(people_base)
     pprint.pprint(list(people_base.find()))
-
-
